@@ -33,7 +33,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between; /* Pour répartir le contenu et pousser la barre en bas */
+            justify-content: space-between; /* Permet de pousser la barre tout en bas */
             flex-grow: 1;
             margin: 10px 0;
         }
@@ -59,7 +59,7 @@
         #progress-bar {
             width: 0%;
             height: 100%;
-            background-color: #eab308; /* Jaune */
+            background-color: #eab308; /* Jaune bien visible */
             transition: width 0.2s linear;
         }
 
@@ -119,6 +119,7 @@
     </header>
 
     <div class="card">
+        <!-- Contenu central -->
         <div class="card-content">
             <div id="phase-label" class="work">Prêt</div>
             <div id="exercise-name">Appuyer sur Démarrer</div>
@@ -126,7 +127,8 @@
             <div id="timer" class="work">--</div>
             <div id="next-exercise"></div>
         </div>
-        <!-- Barre de progression en bas et en jaune -->
+
+        <!-- Barre de progression positionnée en bas de la carte -->
         <div class="progress-bar-container">
             <div id="progress-bar"></div>
         </div>
@@ -236,7 +238,6 @@
             } catch (e) {}
         }
 
-        // Calcul corrigé et précis du temps écoulé en secondes
         function getElapsedSeconds() {
             let elapsed = 0;
             for (let i = 0; i < currentIndex; i++) {
@@ -246,13 +247,11 @@
                 }
             }
             const currentPhaseDuration = isWorkPhase ? WORK_TIME : REST_TIME;
-            // Correction : on ajoute le temps déjà écoulé dans la phase actuelle
             elapsed += (currentPhaseDuration - timeLeft);
             return elapsed;
         }
 
         function updateDisplay() {
-            // Mise à jour de la barre en temps réel
             let elapsed = getElapsedSeconds();
             let progressPercent = (elapsed / TOTAL_SESSION_SECONDS) * 100;
             if (progressPercent > 100) progressPercent = 100;
