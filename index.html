@@ -151,7 +151,7 @@
         const pauseBtn = document.getElementById('pause-btn');
         const stopBtn = document.getElementById('stop-btn');
 
-        // Initialisation / Déblocage de l'audio pour iOS
+        // Initialisation et déverrouillage avec un vrai bip audible au clic sur Démarrer
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -159,6 +159,8 @@
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+            // On joue un vrai bip de démarrage (aigu) pour réveiller Safari et confirmer le son
+            playBeep(true);
         }
 
         // Générateur de bip sonore
