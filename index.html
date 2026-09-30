@@ -38,6 +38,22 @@
             margin: 10px 0;
         }
 
+        .progress-bar-container {
+            width: 100%;
+            background-color: #334155;
+            border-radius: 8px;
+            height: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #22c55e;
+            transition: width 0.3s ease;
+        }
+
         #phase-label { font-size: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
         #exercise-name { font-size: 1.8rem; font-weight: bold; margin: 10px 0; min-height: 2.4rem; display: flex; align-items: center; justify-content: center; }
         
@@ -94,6 +110,9 @@
     </header>
 
     <div class="card">
+        <div class="progress-bar-container">
+            <div id="progress-bar"></div>
+        </div>
         <div id="phase-label" class="work">Prêt</div>
         <div id="exercise-name">Appuyer sur Démarrer</div>
         <img id="exercise-img" src="" alt="Illustration mouvement">
@@ -146,12 +165,12 @@
         const phaseLabelEl = document.getElementById('phase-label');
         const imgEl = document.getElementById('exercise-img');
         const nextEl = document.getElementById('next-exercise');
+        const progressBarEl = document.getElementById('progress-bar');
         
         const startBtn = document.getElementById('start-btn');
         const pauseBtn = document.getElementById('pause-btn');
         const stopBtn = document.getElementById('stop-btn');
 
-        // Initialisation et déverrouillage audio pour iOS
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -161,7 +180,6 @@
             }
         }
 
-        // Générateur de bip sonore
         function playBeep(highPitch = false) {
             try {
                 initAudio();
@@ -185,7 +203,6 @@
             }
         }
 
-        // Mélodie de fin de séance
         function playVictorySound() {
             try {
                 initAudio();
@@ -210,7 +227,12 @@
         }
 
         function updateDisplay() {
+            // Mise à jour de la barre de progression globale (0% à 100%)
+            const progressPercent = (currentIndex / exercices.length) * 100;
+            progressBarEl.style.width = progressPercent + "%";
+
             if (currentIndex >= exercices.length) {
+                progressBarEl.style.width = "100%";
                 phaseLabelEl.textContent = "Terminé 🎉";
                 phaseLabelEl.className = "work";
                 nameEl.textContent = "Bravo, exercice terminé !";
@@ -293,10 +315,9 @@
             interval = setInterval(tick, 1000);
         }
 
-        // Bouton Démarrer / Reprendre
         startBtn.addEventListener('click', () => {
             initAudio();
-            playBeep(true); // Bip audible immédiat pour débloquer iOS et confirmer le son
+            playBeep(true);
 
             if (startBtn.textContent === "Recommencer") {
                 resetApp();
@@ -317,7 +338,6 @@
             startTimer();
         });
 
-        // Bouton Pause
         pauseBtn.addEventListener('click', () => {
             isPaused = !isPaused;
             if (isPaused) {
@@ -329,7 +349,6 @@
             }
         });
 
-        // Bouton Stop / Reset
         function resetApp() {
             clearInterval(interval);
             isPaused = false;
@@ -337,6 +356,7 @@
             isWorkPhase = true;
             timeLeft = 0;
             
+            progressBarEl.style.width = "0%";
             phaseLabelEl.textContent = "Prêt";
             phaseLabelEl.className = "work";
             nameEl.textContent = "Appuyer sur Démarrer";
