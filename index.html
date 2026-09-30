@@ -139,7 +139,7 @@
         let timeLeft = 0;
         let interval = null;
         let isPaused = false;
-        let audioCtx = null; // Contexte audio global
+        let audioCtx = null;
 
         const timerEl = document.getElementById('timer');
         const nameEl = document.getElementById('exercise-name');
@@ -151,7 +151,7 @@
         const pauseBtn = document.getElementById('pause-btn');
         const stopBtn = document.getElementById('stop-btn');
 
-        // Initialisation et déverrouillage avec un vrai bip audible au clic sur Démarrer
+        // Initialisation et déverrouillage audio pour iOS
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -159,8 +159,6 @@
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
-            // On joue un vrai bip de démarrage (aigu) pour réveiller Safari et confirmer le son
-            playBeep(true);
         }
 
         // Générateur de bip sonore
@@ -187,15 +185,39 @@
             }
         }
 
+        // Mélodie de fin de séance
+        function playVictorySound() {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                
+                const now = audioCtx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.1, now + (index * 0.12));
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + (index * 0.12) + 0.2);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + (index * 0.12));
+                    osc.stop(now + (index * 0.12) + 0.2);
+                });
+            } catch (e) {
+                // Ignore
+            }
+        }
+
         function updateDisplay() {
             if (currentIndex >= exercices.length) {
-                phaseLabelEl.textContent = "Terminé";
+                phaseLabelEl.textContent = "Terminé 🎉";
                 phaseLabelEl.className = "work";
-                nameEl.textContent = "Séance bouclée !";
-                timerEl.textContent = "GG";
+                nameEl.textContent = "Bravo, exercice terminé !";
+                timerEl.textContent = "🏆";
                 timerEl.className = "work";
                 imgEl.style.display = "none";
-                nextEl.textContent = "";
+                nextEl.textContent = "Séance d'abdos validée avec succès !";
                 
                 startBtn.textContent = "Recommencer";
                 startBtn.style.display = "block";
@@ -253,6 +275,7 @@
                         timeLeft = REST_TIME;
                         startTimer();
                     } else {
+                        playVictorySound();
                         updateDisplay();
                         return;
                     }
@@ -272,8 +295,8 @@
 
         // Bouton Démarrer / Reprendre
         startBtn.addEventListener('click', () => {
-            // Débloque l'audio sur iOS dès le premier clic utilisateur
             initAudio();
+            playBeep(true); // Bip audible immédiat pour débloquer iOS et confirmer le son
 
             if (startBtn.textContent === "Recommencer") {
                 resetApp();
