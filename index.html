@@ -51,7 +51,7 @@
             width: 0%;
             height: 100%;
             background-color: #22c55e;
-            transition: width 0.3s ease;
+            transition: width 0.2s linear;
         }
 
         #phase-label { font-size: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
@@ -153,6 +153,10 @@
         const WORK_TIME = 30;
         const REST_TIME = 10;
         
+        // Calcul de la durée totale de la séance en secondes
+        // (Il y a un repos entre chaque exercice, donc (N - 1) repos au total)
+        const TOTAL_SESSION_SECONDS = (exercices.length * WORK_TIME) + ((exercices.length - 1) * REST_TIME);
+        
         let currentIndex = 0;
         let isWorkPhase = true;
         let timeLeft = 0;
@@ -226,9 +230,26 @@
             }
         }
 
+        // Calcule le temps total écoulé depuis le début de la séance en secondes
+        function getElapsedSeconds() {
+            let elapsed = 0;
+            for (let i = 0; i < currentIndex; i++) {
+                elapsed += WORK_TIME; // Temps d'effort de l'exercice passé
+                if (i < exercices.length - 1) {
+                    elapsed += REST_TIME; // Temps de repos associé
+                }
+            }
+            // Ajoute le temps déjà consommé dans l'exercice/repos en cours
+            const currentPhaseDuration = isWorkPhase ? WORK_TIME : REST_TIME;
+            elapsed += (currentPhaseDuration - timeLeft);
+            return elapsed;
+        }
+
         function updateDisplay() {
-            // Mise à jour de la barre de progression globale (0% à 100%)
-            const progressPercent = (currentIndex / exercices.length) * 100;
+            // Calcul précis du pourcentage en temps réel
+            let elapsed = getElapsedSeconds();
+            let progressPercent = (elapsed / TOTAL_SESSION_SECONDS) * 100;
+            if (progressPercent > 100) progressPercent = 100;
             progressBarEl.style.width = progressPercent + "%";
 
             if (currentIndex >= exercices.length) {
