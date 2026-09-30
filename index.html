@@ -33,9 +33,18 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between; /* Pour répartir le contenu et pousser la barre en bas */
             flex-grow: 1;
             margin: 10px 0;
+        }
+
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            width: 100%;
         }
 
         .progress-bar-container {
@@ -43,14 +52,14 @@
             background-color: #334155;
             border-radius: 8px;
             height: 8px;
-            margin-bottom: 15px;
+            margin-top: 15px;
             overflow: hidden;
         }
 
         #progress-bar {
             width: 0%;
             height: 100%;
-            background-color: #22c55e;
+            background-color: #eab308; /* Jaune */
             transition: width 0.2s linear;
         }
 
@@ -110,14 +119,17 @@
     </header>
 
     <div class="card">
+        <div class="card-content">
+            <div id="phase-label" class="work">Prêt</div>
+            <div id="exercise-name">Appuyer sur Démarrer</div>
+            <img id="exercise-img" src="" alt="Illustration mouvement">
+            <div id="timer" class="work">--</div>
+            <div id="next-exercise"></div>
+        </div>
+        <!-- Barre de progression en bas et en jaune -->
         <div class="progress-bar-container">
             <div id="progress-bar"></div>
         </div>
-        <div id="phase-label" class="work">Prêt</div>
-        <div id="exercise-name">Appuyer sur Démarrer</div>
-        <img id="exercise-img" src="" alt="Illustration mouvement">
-        <div id="timer" class="work">--</div>
-        <div id="next-exercise"></div>
     </div>
 
     <div class="btn-container">
@@ -153,8 +165,6 @@
         const WORK_TIME = 30;
         const REST_TIME = 10;
         
-        // Calcul de la durée totale de la séance en secondes
-        // (Il y a un repos entre chaque exercice, donc (N - 1) repos au total)
         const TOTAL_SESSION_SECONDS = (exercices.length * WORK_TIME) + ((exercices.length - 1) * REST_TIME);
         
         let currentIndex = 0;
@@ -202,9 +212,7 @@
 
                 oscillator.start();
                 oscillator.stop(audioCtx.currentTime + 0.15);
-            } catch (e) {
-                // Ignore
-            }
+            } catch (e) {}
         }
 
         function playVictorySound() {
@@ -225,35 +233,34 @@
                     osc.start(now + (index * 0.12));
                     osc.stop(now + (index * 0.12) + 0.2);
                 });
-            } catch (e) {
-                // Ignore
-            }
+            } catch (e) {}
         }
 
-        // Calcule le temps total écoulé depuis le début de la séance en secondes
+        // Calcul corrigé et précis du temps écoulé en secondes
         function getElapsedSeconds() {
             let elapsed = 0;
             for (let i = 0; i < currentIndex; i++) {
-                elapsed += WORK_TIME; // Temps d'effort de l'exercice passé
+                elapsed += WORK_TIME;
                 if (i < exercices.length - 1) {
-                    elapsed += REST_TIME; // Temps de repos associé
+                    elapsed += REST_TIME;
                 }
             }
-            // Ajoute le temps déjà consommé dans l'exercice/repos en cours
             const currentPhaseDuration = isWorkPhase ? WORK_TIME : REST_TIME;
+            // Correction : on ajoute le temps déjà écoulé dans la phase actuelle
             elapsed += (currentPhaseDuration - timeLeft);
             return elapsed;
         }
 
         function updateDisplay() {
-            // Calcul précis du pourcentage en temps réel
+            // Mise à jour de la barre en temps réel
             let elapsed = getElapsedSeconds();
             let progressPercent = (elapsed / TOTAL_SESSION_SECONDS) * 100;
             if (progressPercent > 100) progressPercent = 100;
+            if (currentIndex >= exercices.length) progressPercent = 100;
+            
             progressBarEl.style.width = progressPercent + "%";
 
             if (currentIndex >= exercices.length) {
-                progressBarEl.style.width = "100%";
                 phaseLabelEl.textContent = "Terminé 🎉";
                 phaseLabelEl.className = "work";
                 nameEl.textContent = "Bravo, exercice terminé !";
